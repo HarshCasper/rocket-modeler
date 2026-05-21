@@ -70,7 +70,8 @@ export function computeCg(
     prevTop += engineLengthCm;
   }
 
-  const noseCentroid = bodyLength + noseLen / 2;
+  // Right-cone centroid sits 1/3 of the height from the base, not the midpoint.
+  const noseCentroid = bodyLength + noseLen / 3;
   const finCentroid = finHeight + finLength / 3;
   const bodyTubeCentroid = bodyLength / 2;
   const payloadCentroid = bodyLength;
