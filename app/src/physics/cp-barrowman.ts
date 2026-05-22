@@ -39,8 +39,9 @@ export function computeCp(input: CpInputs): CpResult {
   const m = finLength;
   const midChord = Math.sqrt(s * s + (m + ct / 2 - cr / 2) ** 2);
 
-  // Body-fin interference factor.
-  const Kfb = s + R > 0 ? 1 - R / (s + R) : 1;
+  // Body-fin interference factor. The body funnels more flow around the fin
+  // root, so the factor is greater than 1, not less.
+  const Kfb = s + R > 0 ? 1 + R / (s + R) : 1;
 
   // Aspect-ratio dependent slope term.
   const denomBase = 2 * midChord / (cr + ct || 1);
