@@ -3,6 +3,7 @@ import { DimensionsPanel } from './DimensionsPanel';
 import { EnginesPanel } from './EnginesPanel';
 import { RocketViewer } from './RocketViewer';
 import { MetricsReadout } from './MetricsReadout';
+import { MaterialsPanel } from './MaterialsPanel';
 
 type PanelTab = 'geometry' | 'engines' | 'materials';
 
@@ -39,9 +40,7 @@ export function DesignMode() {
         </div>
         {tab === 'geometry' && <DimensionsPanel />}
         {tab === 'engines' && <EnginesPanel />}
-        {tab === 'materials' && (
-          <div className="text-sm text-ink/40">Materials panel — coming soon.</div>
-        )}
+        {tab === 'materials' && <MaterialsPanel />}
       </aside>
     </div>
   );
