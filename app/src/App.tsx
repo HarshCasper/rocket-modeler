@@ -43,23 +43,42 @@ export default function App() {
             Launch ▸
           </button>
         </nav>
-        <button
-          type="button"
-          onClick={async () => {
-            const ok = await copyShareLink();
-            if (ok) {
-              setCopied(true);
-              setTimeout(() => setCopied(false), 1800);
-            }
-          }}
-          className="ml-auto text-xs text-nasa border border-nasa/20 rounded-full px-3 py-1 hover:bg-nasa/10 transition-colors"
-        >
-          {copied ? '✓ Link copied' : 'Copy share link'}
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <SoundToggle />
+          <button
+            type="button"
+            onClick={async () => {
+              const ok = await copyShareLink();
+              if (ok) {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1800);
+              }
+            }}
+            className="text-xs text-nasa border border-nasa/20 rounded-full px-3 py-1 hover:bg-nasa/10 transition-colors"
+          >
+            {copied ? '✓ Link copied' : 'Copy share link'}
+          </button>
+        </div>
       </header>
       <main className="flex-1 min-h-0">
         {mode === 'design' ? <DesignMode /> : <FlightMode />}
       </main>
     </div>
+  );
+}
+
+function SoundToggle() {
+  const enabled = useAppStore((s) => s.flight.soundEnabled);
+  const updateFlight = useAppStore((s) => s.updateFlight);
+  return (
+    <button
+      type="button"
+      onClick={() => updateFlight((f) => ({ ...f, soundEnabled: !f.soundEnabled }))}
+      className="text-xs border border-nasa/20 rounded-full px-2.5 py-1 hover:bg-nasa/10 transition-colors"
+      title={enabled ? 'Sound on' : 'Sound off'}
+      aria-pressed={enabled}
+    >
+      {enabled ? '🔊' : '🔈'}
+    </button>
   );
 }

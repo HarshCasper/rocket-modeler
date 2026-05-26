@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import type { FlightConfig, FlightSample, Rocket } from '../domain/types';
 import { createSim, ignite, stepSim, type FlightSim } from '../physics/integrator';
 import { FLIGHT_DELTA_T } from '../domain/constants';
+import { playCountdownBeep, startThruster, stopThruster } from './audio';
 
 export type RunState = 'idle' | 'countdown' | 'running' | 'paused' | 'ended';
 
@@ -73,10 +74,12 @@ export function useSimulation({ rocket, config }: UseSimulationArgs): Simulation
       }
       if (next) {
         setSample(next);
+        if (next.phase !== 'boost') stopThruster();
         if (next.phase === 'landed' || next.phase === 'crashed') {
           setRunState('ended');
           setSamplesSnapshot(samplesRef.current.slice());
           stop();
+          stopThruster();
           return;
         }
       }
@@ -100,10 +103,15 @@ export function useSimulation({ rocket, config }: UseSimulationArgs): Simulation
     const tick = () => {
       if (n > 0) {
         setCountdown(n);
+        if (config.soundEnabled) playCountdownBeep(false);
         n -= 1;
         setTimeout(tick, 1000);
       } else {
         setCountdown(0);
+        if (config.soundEnabled) {
+          playCountdownBeep(true);
+          startThruster();
+        }
         if (simRef.current) ignite(simRef.current);
         setRunState('running');
         lastTickRef.current = 0;
@@ -128,6 +136,7 @@ export function useSimulation({ rocket, config }: UseSimulationArgs): Simulation
 
   const reset = useCallback(() => {
     stop();
+    stopThruster();
     simRef.current = createSim(rocket, config);
     setSample(null);
     setMaxAlt(0);
