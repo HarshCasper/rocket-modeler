@@ -3,19 +3,28 @@ import { useAppStore } from './state/store';
 import { DesignMode } from './design/DesignMode';
 import { FlightMode } from './flight/FlightMode';
 import { useUrlSync, copyShareLink } from './url/useUrlSync';
+import { AboutModal } from './ui/AboutModal';
 
 export default function App() {
   useUrlSync();
   const mode = useAppStore((s) => s.mode);
   const setMode = useAppStore((s) => s.setMode);
   const [copied, setCopied] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-paper text-ink">
       <header className="flex items-center gap-4 px-6 py-3 border-b border-nasa/15 bg-white">
-        <h1 className="text-xl font-semibold tracking-tight text-nasa">
+        <h1 className="text-xl font-semibold tracking-tight text-nasa flex items-baseline">
           RocketModeler
-          <span className="ml-2 text-xs font-normal text-ink/50">v1</span>
+          <button
+            type="button"
+            onClick={() => setAboutOpen(true)}
+            className="ml-2 text-xs font-normal text-ink/50 hover:text-nasa underline-offset-2 hover:underline"
+            title="About"
+          >
+            v1 · about
+          </button>
         </h1>
         <nav className="ml-4 inline-flex rounded-full border border-nasa/20 p-1 bg-paper">
           <button
@@ -63,6 +72,7 @@ export default function App() {
       <main className="flex-1 min-h-0">
         {mode === 'design' ? <DesignMode /> : <FlightMode />}
       </main>
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   );
 }
