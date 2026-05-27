@@ -41,6 +41,7 @@ export function useSimulation({ rocket, config }: UseSimulationArgs): Simulation
       simRef.current = createSim(rocket, config);
       setSample(null);
       setMaxAlt(0);
+    maxAltRef.current = 0;
     }
   }, [rocket, config, runState]);
 
@@ -51,6 +52,7 @@ export function useSimulation({ rocket, config }: UseSimulationArgs): Simulation
     }
   }, []);
 
+  const maxAltRef = useRef(0);
   const loop = useCallback(
     (timestamp: number) => {
       const sim = simRef.current;
@@ -67,7 +69,10 @@ export function useSimulation({ rocket, config }: UseSimulationArgs): Simulation
         next = stepSim(sim);
         samplesRef.current.push(next);
         accumulatedRef.current -= FLIGHT_DELTA_T;
-        if (next.altitude > maxAlt) setMaxAlt(next.altitude);
+        if (next.altitude > maxAltRef.current) {
+          maxAltRef.current = next.altitude;
+          setMaxAlt(next.altitude);
+        }
         if (next.phase === 'landed' || next.phase === 'crashed') {
           break;
         }
@@ -85,7 +90,7 @@ export function useSimulation({ rocket, config }: UseSimulationArgs): Simulation
       }
       rafRef.current = requestAnimationFrame(loop);
     },
-    [config.timeScale, maxAlt, stop],
+    [config.timeScale, stop],
   );
 
   const start = useCallback(() => {
@@ -93,6 +98,7 @@ export function useSimulation({ rocket, config }: UseSimulationArgs): Simulation
     simRef.current = createSim(rocket, config);
     setSample(null);
     setMaxAlt(0);
+    maxAltRef.current = 0;
     samplesRef.current = [];
     setSamplesSnapshot([]);
     accumulatedRef.current = 0;
@@ -140,6 +146,7 @@ export function useSimulation({ rocket, config }: UseSimulationArgs): Simulation
     simRef.current = createSim(rocket, config);
     setSample(null);
     setMaxAlt(0);
+    maxAltRef.current = 0;
     setCountdown(0);
     setRunState('idle');
     samplesRef.current = [];
