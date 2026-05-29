@@ -54,11 +54,24 @@ export const useAppStore = create<AppState>()(
     flight: initialPersist?.flight ?? DEFAULT_FLIGHT_CONFIG,
     stagesShowing: 1,
     mode: 'design',
-    setRocket: (next) => set({ rocket: next }),
-    updateRocket: (patch) => set({ rocket: patch(get().rocket) }),
+    setRocket: (next) =>
+      set((s) => ({
+        rocket: next,
+        stagesShowing: Math.min(s.stagesShowing, next.numStages) as 1 | 2 | 3,
+      })),
+    updateRocket: (patch) => {
+      const next = patch(get().rocket);
+      set((s) => ({
+        rocket: next,
+        stagesShowing: Math.min(s.stagesShowing, next.numStages) as 1 | 2 | 3,
+      }));
+    },
     setFlight: (next) => set({ flight: next }),
     updateFlight: (patch) => set({ flight: patch(get().flight) }),
-    setStagesShowing: (n) => set({ stagesShowing: n }),
+    setStagesShowing: (n) =>
+      set((s) => ({
+        stagesShowing: Math.min(n, s.rocket.numStages) as 1 | 2 | 3,
+      })),
     setMode: (m) => set({ mode: m }),
     resetAll: () =>
       set({
