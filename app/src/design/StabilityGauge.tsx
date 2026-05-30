@@ -2,6 +2,10 @@ import { useMemo } from 'react';
 import { useAppStore } from '../state/store';
 import { computeStageCg } from '../physics/cg';
 import { computeCpForRocket } from '../physics/cp-barrowman';
+import { HelpTip } from '../ui/HelpTip';
+
+const CALIBER_HELP =
+  'Static margin in calibers: (CP − CG) / body diameter. Hobby convention: 1.0–2.5 is comfortable, below 1 is twitchy, above 2.5 weathercocks into wind.';
 
 type Verdict = 'unstable' | 'marginal' | 'stable' | 'overstable';
 
@@ -71,8 +75,9 @@ export function StabilityGauge() {
           />
           {LABEL[verdict]}
         </span>
-        <span className="font-mono tabular-nums text-ink">
+        <span className="font-mono tabular-nums text-ink flex items-center gap-1">
           {caliber.toFixed(2)} cal
+          <HelpTip text={CALIBER_HELP} align="right" />
         </span>
       </div>
       <div className="relative h-2 rounded-full bg-paper overflow-hidden border border-nasa/10">
