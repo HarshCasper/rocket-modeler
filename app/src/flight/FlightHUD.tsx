@@ -1,5 +1,6 @@
 import type { FlightSample } from '../domain/types';
 import { num } from '../ui/format';
+import { GRAVITY } from '../domain/constants';
 
 interface FlightHUDProps {
   sample: FlightSample | null;
@@ -7,16 +8,22 @@ interface FlightHUDProps {
 }
 
 export function FlightHUD({ sample, maxAlt }: FlightHUDProps) {
+  const accelG = sample ? sample.acceleration / GRAVITY : 0;
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-2 gap-3">
       <Cell label="Time" value={`${num(sample?.t ?? 0, 2)} s`} />
       <Cell label="Phase" value={(sample?.phase ?? 'idle').toUpperCase()} accent />
       <Cell label="Altitude" value={`${num(sample?.altitude ?? 0, 1)} m`} />
       <Cell label="Speed" value={`${num(sample?.speed ?? 0, 1)} m/s`} />
       <Cell label="Max alt" value={`${num(maxAlt, 1)} m`} accent />
+      <Cell label="Accel" value={`${num(accelG, 1)} g`} />
       <Cell
         label="Stage"
         value={sample ? `${sample.activeStage + 1}` : '—'}
+      />
+      <Cell
+        label="Mass"
+        value={sample ? `${num(sample.mass, 1)} g` : '—'}
       />
     </div>
   );
