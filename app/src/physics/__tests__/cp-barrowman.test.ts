@@ -39,6 +39,29 @@ describe('Barrowman CP', () => {
     expect(r.cnaNose).toBe(2);
   });
 
+  it('elliptical and ogive noses move CP forward vs a cone', () => {
+    const base = {
+      bodyLength: 30,
+      bodyDiameter: 2.5,
+      noseLength: 9,
+      finLength: 10,
+      finWidth: 4,
+      finHeight: 0,
+      finCount: 4,
+    };
+    const cone = computeCp({ ...base, noseShape: 'cone' }).cpFromNose;
+    const ogive = computeCp({ ...base, noseShape: 'ogive' }).cpFromNose;
+    const parabolic = computeCp({ ...base, noseShape: 'parabolic' }).cpFromNose;
+    const elliptical = computeCp({ ...base, noseShape: 'elliptical' }).cpFromNose;
+    // CP_nose contribution sits closer to the tip for shapes with X_n < 2/3,
+    // pulling overall CP forward (smaller cpFromNose) compared to a cone.
+    expect(ogive).toBeLessThan(cone);
+    expect(parabolic).toBeLessThan(cone);
+    expect(elliptical).toBeLessThan(cone);
+    // Elliptical (X_n = 1/3) is the most forward, ogive (0.466) sits between.
+    expect(elliptical).toBeLessThan(ogive);
+  });
+
   it('a fatter rocket (larger R relative to fin span) has a larger K_fb factor', () => {
     // K_fb = 1 + R/(s+R), so as body diameter grows toward the fin span the
     // interference factor approaches 2.
