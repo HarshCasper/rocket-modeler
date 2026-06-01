@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { FlightSample, Rocket } from '../domain/types';
+import type { FlightSample, NoseConeShape, Rocket } from '../domain/types';
 
 interface FlightViewerProps {
   rocket: Rocket;
@@ -170,13 +170,10 @@ function drawRocket(
   ctx.fillRect(-bodyW / 2, -bodyLen / 2, bodyW, bodyLen);
   ctx.strokeRect(-bodyW / 2, -bodyLen / 2, bodyW, bodyLen);
 
-  // nose cone (triangle on top)
+  // nose cone — shape selected from rocket.noseCone.shape, rendered in local
+  // body frame (body axis along -y, base at -bodyLen/2).
   ctx.fillStyle = '#D63333';
-  ctx.beginPath();
-  ctx.moveTo(-bodyW / 2, -bodyLen / 2);
-  ctx.lineTo(0, -bodyLen / 2 - noseLen);
-  ctx.lineTo(bodyW / 2, -bodyLen / 2);
-  ctx.closePath();
+  traceNoseConeShape(ctx, rocket.noseCone.shape ?? 'cone', bodyW, bodyLen, noseLen);
   ctx.fill();
   ctx.stroke();
 
@@ -249,6 +246,64 @@ function drawRocket(
   }
 
   ctx.restore();
+}
+
+function traceNoseConeShape(
+  ctx: CanvasRenderingContext2D,
+  shape: NoseConeShape,
+  bodyW: number,
+  bodyLen: number,
+  noseLen: number,
+) {
+  const baseY = -bodyLen / 2;
+  const tipY = baseY - noseLen;
+  const halfW = bodyW / 2;
+  ctx.beginPath();
+  switch (shape) {
+    case 'ogive': {
+      const rho = (halfW * halfW + noseLen * noseLen) / (2 * halfW);
+      const centerXLeft = -halfW + rho;
+      const centerXRight = halfW - rho;
+      ctx.moveTo(-halfW, baseY);
+      // left arc upward to tip, then right arc downward to right base.
+      ctx.arc(
+        centerXLeft,
+        baseY,
+        rho,
+        Math.PI,
+        Math.PI + Math.atan2(tipY - baseY, 0 - centerXLeft),
+        false,
+      );
+      ctx.lineTo(0, tipY);
+      ctx.arc(
+        centerXRight,
+        baseY,
+        rho,
+        Math.atan2(tipY - baseY, 0 - centerXRight),
+        0,
+        false,
+      );
+      ctx.lineTo(halfW, baseY);
+      break;
+    }
+    case 'parabolic': {
+      ctx.moveTo(-halfW, baseY);
+      ctx.quadraticCurveTo(0, baseY - 2 * noseLen, halfW, baseY);
+      break;
+    }
+    case 'elliptical': {
+      ctx.moveTo(-halfW, baseY);
+      ctx.ellipse(0, baseY, halfW, noseLen, 0, Math.PI, 0, false);
+      break;
+    }
+    case 'cone':
+    default:
+      ctx.moveTo(-halfW, baseY);
+      ctx.lineTo(0, tipY);
+      ctx.lineTo(halfW, baseY);
+      break;
+  }
+  ctx.closePath();
 }
 
 function drawAltitudeTicks(
