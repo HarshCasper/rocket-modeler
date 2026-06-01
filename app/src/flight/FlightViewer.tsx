@@ -6,12 +6,13 @@ interface FlightViewerProps {
   sample: FlightSample | null;
   launchAngle: number;
   countdown: number; // 0 = hidden, else 3,2,1
+  windSpeed: number; // m/s, positive = wind blows toward +x
 }
 
 const CANVAS_W = 800;
 const CANVAS_H = 520;
 
-export function FlightViewer({ rocket, sample, launchAngle, countdown }: FlightViewerProps) {
+export function FlightViewer({ rocket, sample, launchAngle, countdown, windSpeed }: FlightViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -19,8 +20,8 @@ export function FlightViewer({ rocket, sample, launchAngle, countdown }: FlightV
     if (!cnv) return;
     const ctx = cnv.getContext('2d');
     if (!ctx) return;
-    draw(ctx, rocket, sample, launchAngle, countdown);
-  }, [rocket, sample, launchAngle, countdown]);
+    draw(ctx, rocket, sample, launchAngle, countdown, windSpeed);
+  }, [rocket, sample, launchAngle, countdown, windSpeed]);
 
   return (
     <canvas
@@ -40,6 +41,7 @@ function draw(
   sample: FlightSample | null,
   launchAngle: number,
   countdown: number,
+  windSpeed: number,
 ) {
   const W = ctx.canvas.width;
   const H = ctx.canvas.height;
@@ -100,6 +102,9 @@ function draw(
 
   // Altitude tick marks down the left edge.
   drawAltitudeTicks(ctx, altitude, scale, padBaselineY);
+
+  // Wind direction indicator in the top right corner.
+  drawWindIndicator(ctx, windSpeed);
 
   // Countdown overlay.
   if (countdown > 0) {
@@ -246,6 +251,54 @@ function drawRocket(
   }
 
   ctx.restore();
+}
+
+function drawWindIndicator(ctx: CanvasRenderingContext2D, windSpeed: number) {
+  const W = ctx.canvas.width;
+  const padding = 14;
+  const cx = W - 90;
+  const cy = padding + 22;
+  // backdrop
+  ctx.fillStyle = 'rgba(255,255,255,0.78)';
+  ctx.strokeStyle = 'rgba(11,61,145,0.25)';
+  ctx.lineWidth = 1;
+  const boxW = 110;
+  const boxH = 40;
+  ctx.beginPath();
+  ctx.rect(cx - boxW / 2, cy - boxH / 2, boxW, boxH);
+  ctx.fill();
+  ctx.stroke();
+  // label
+  ctx.fillStyle = 'rgba(11,19,32,0.55)';
+  ctx.font = '9px JetBrains Mono, ui-monospace, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('WIND', cx - boxW / 2 + 6, cy - 7);
+  ctx.fillStyle = '#0B1320';
+  ctx.font = '11px JetBrains Mono, ui-monospace, monospace';
+  ctx.fillText(`${Math.abs(windSpeed).toFixed(1)} m/s`, cx - boxW / 2 + 6, cy + 9);
+  // arrow
+  const maxMag = 10;
+  const mag = Math.min(Math.abs(windSpeed) / maxMag, 1);
+  const arrowLen = 26 * mag;
+  const arrowX = cx + 28;
+  const arrowY = cy + 1;
+  const dir = windSpeed >= 0 ? 1 : -1;
+  ctx.strokeStyle = windSpeed === 0 ? 'rgba(11,19,32,0.25)' : '#0B3D91';
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(arrowX, arrowY);
+  ctx.lineTo(arrowX + dir * arrowLen, arrowY);
+  ctx.stroke();
+  if (arrowLen > 2) {
+    const tipX = arrowX + dir * arrowLen;
+    ctx.beginPath();
+    ctx.moveTo(tipX, arrowY);
+    ctx.lineTo(tipX - dir * 5, arrowY - 3);
+    ctx.lineTo(tipX - dir * 5, arrowY + 3);
+    ctx.closePath();
+    ctx.fill();
+  }
 }
 
 function traceNoseConeShape(

@@ -57,6 +57,7 @@ export function FlightMode() {
           sample={sim.sample}
           launchAngle={flight.launchAngle}
           countdown={sim.countdown}
+          windSpeed={flight.windSpeed}
         />
         {summaryOpen && (
           <PostFlightSummary
