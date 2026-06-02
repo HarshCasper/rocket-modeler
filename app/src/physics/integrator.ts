@@ -36,6 +36,8 @@ export interface FlightSim {
   engines: Engine[]; // resolved bottom-up
   dryMassByStage: number[]; // grams of "everything still attached" per stage active
   initialMargin: number;
+  cgM: number; // initial CG from base, in meters
+  cpM: number; // initial CP from base, in meters
 }
 
 function dryMassForStage(rocket: Rocket, stageIdx: number): number {
@@ -64,6 +66,8 @@ export function createSim(rocket: Rocket, config: FlightConfig): FlightSim {
     engines,
     dryMassByStage,
     initialMargin: margin,
+    cgM: cg / 100,
+    cpM: cp / 100,
     state: {
       t: 0,
       altitude: 0,
@@ -196,6 +200,32 @@ export function stepSim(sim: FlightSim): FlightSample {
     s.vy += ay * stepDt;
     s.xDist += s.vx * stepDt;
     s.altitude += s.vy * stepDt;
+
+    // After clearing the rod, stable rockets gradually align their heading
+    // with the relative-wind direction (gravity turn + weathercocking). The
+    // alignment stiffness is proportional to dynamic pressure and stability
+    // margin, mirroring restoring aerodynamic torque without paying the full
+    // moment-of-inertia integration price.
+    if (!s.onRod && !s.unstable && s.phase !== 'descent') {
+      const windVx = sim.config.windSpeed;
+      const vrelX = s.vx - windVx;
+      const vrelY = s.vy;
+      const vrelMag = Math.sqrt(vrelX * vrelX + vrelY * vrelY);
+      if (vrelMag > 0.5) {
+        const phi = Math.atan2(vrelY, vrelX);
+        const theta = (s.tiltDeg * Math.PI) / 180;
+        let dphi = phi - theta;
+        while (dphi > Math.PI) dphi -= 2 * Math.PI;
+        while (dphi < -Math.PI) dphi += 2 * Math.PI;
+        const stabM = Math.abs(sim.cgM - sim.cpM);
+        const rho = airDensity(s.altitude);
+        const K = 0.18 * rho * vrelMag * stabM;
+        const dTheta = K * dphi * stepDt;
+        s.tiltDeg += (dTheta * 180) / Math.PI;
+        if (s.tiltDeg < 0) s.tiltDeg += 360;
+        if (s.tiltDeg >= 360) s.tiltDeg -= 360;
+      }
+    }
 
     // Launch rod constraint: while the rocket has not yet cleared the rod
     // length, project velocity and position back onto the rod axis so motion
