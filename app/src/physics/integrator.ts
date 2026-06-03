@@ -11,8 +11,8 @@ import {
   SUB_STEPS_PER_FRAME,
 } from '../domain/constants';
 import { getEngine } from '../domain/engines';
-import { computeStageCg } from './cg';
-import { computeCpForRocket } from './cp-barrowman';
+import { activeGeometry, computeCg, computeStageCg, materialSettingsFor } from './cg';
+import { computeCp, computeCpForRocket } from './cp-barrowman';
 
 interface InternalState {
   t: number;
@@ -38,6 +38,41 @@ export interface FlightSim {
   initialMargin: number;
   cgM: number; // initial CG from base, in meters
   cpM: number; // initial CP from base, in meters
+  // Live values, recomputed when stages drop or fuel materially burns.
+  liveCgM: number;
+  liveCpM: number;
+}
+
+function computeLiveCgCp(
+  sim: FlightSim,
+): { cgM: number; cpM: number; marginCal: number } {
+  const s = sim.state;
+  const rocket = sim.rocket;
+  const geom = activeGeometry(rocket, s.activeStage);
+  // Live engine masses: active engine reflects current fuel-burndown, others
+  // upstream are still fully fueled.
+  const liveEngines = geom.engines.map((e, i) => {
+    if (i !== 0) return e;
+    const elapsed = s.t - s.stageStartT;
+    let burnFraction = elapsed / e.totalBurnTime;
+    if (burnFraction < 0) burnFraction = 0;
+    if (burnFraction > 1) burnFraction = 1;
+    return { ...e, mass: e.mass - e.fuelMass * burnFraction };
+  });
+  const mats = materialSettingsFor(rocket);
+  const { cg } = computeCg(rocket, { ...geom, engines: liveEngines }, mats);
+  const { cp } = computeCp({
+    bodyLength: geom.bodyLength,
+    bodyDiameter: rocket.body.diameter,
+    noseLength: rocket.noseCone.length,
+    noseShape: rocket.noseCone.shape,
+    finLength: geom.finLength,
+    finWidth: rocket.fins.width,
+    finHeight: geom.finHeight,
+    finCount: rocket.finCount,
+  });
+  const marginCal = (cg - cp) / rocket.body.diameter;
+  return { cgM: cg / 100, cpM: cp / 100, marginCal };
 }
 
 function dryMassForStage(rocket: Rocket, stageIdx: number): number {
@@ -68,6 +103,8 @@ export function createSim(rocket: Rocket, config: FlightConfig): FlightSim {
     initialMargin: margin,
     cgM: cg / 100,
     cpM: cp / 100,
+    liveCgM: cg / 100,
+    liveCpM: cp / 100,
     state: {
       t: 0,
       altitude: 0,
@@ -151,12 +188,11 @@ export function stepSim(sim: FlightSim): FlightSample {
     if (s.phase === 'boost' && engine && elapsed >= engine.totalBurnTime) {
       if (s.activeStage + 1 < sim.engines.length) {
         // Stage transition: drop booster, ignite next stage.
-        const droppedEngine = engine;
         s.activeStage = (s.activeStage + 1) as 0 | 1 | 2;
         s.stageStartT = s.t;
-        // Re-compute dry mass for new active stage (already in array).
-        // No instantaneous velocity change in our simplified model.
-        void droppedEngine;
+        const live = computeLiveCgCp(sim);
+        sim.liveCgM = live.cgM;
+        sim.liveCpM = live.cpM;
       } else {
         s.phase = 'coast';
       }
@@ -260,6 +296,14 @@ export function stepSim(sim: FlightSim): FlightSample {
     if (s.altitude > s.maxAlt) s.maxAlt = s.altitude;
   }
 
+  // Update live CG/CP at frame cadence (cheap enough — once per frame, not per
+  // sub-step). Captures fuel-burndown CG shift between stage drops.
+  if (s.phase === 'boost' || s.phase === 'coast') {
+    const live = computeLiveCgCp(sim);
+    sim.liveCgM = live.cgM;
+    sim.liveCpM = live.cpM;
+  }
+
   const accelMag = Math.sqrt(lastAx * lastAx + lastAy * lastAy);
   return toSample(sim, currentMass(sim), appliedThrust, accelMag);
 }
@@ -277,6 +321,9 @@ function toSample(
   acceleration: number,
 ): FlightSample {
   const s = sim.state;
+  const cgCm = sim.liveCgM * 100;
+  const cpCm = sim.liveCpM * 100;
+  const marginCal = (cgCm - cpCm) / sim.rocket.body.diameter;
   return {
     t: s.t,
     altitude: s.altitude,
@@ -291,5 +338,8 @@ function toSample(
     activeStage: s.activeStage,
     tiltDeg: s.tiltDeg,
     onRod: s.onRod,
+    cg: cgCm,
+    cp: cpCm,
+    marginCal,
   };
 }

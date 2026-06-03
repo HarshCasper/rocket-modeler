@@ -87,6 +87,9 @@ export interface FlightSample {
   activeStage: 0 | 1 | 2;
   tiltDeg: number; // heading angle in degrees (90 = straight up)
   onRod: boolean;
+  cg: number; // cm from base of current active rocket
+  cp: number; // cm from base of current active rocket
+  marginCal: number; // (cg - cp) / body diameter — current stability caliber
 }
 
 export interface StageMetrics {

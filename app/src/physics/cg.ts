@@ -121,3 +121,36 @@ export function computeStageCg(rocket: Rocket, stagesShowing: 1 | 2 | 3): CgResu
   }
   return computeCg(rocket, { bodyLength, finLength, finHeight, engines }, mats);
 }
+
+// Geometry of the active-and-above subset of a rocket given an active stage
+// index. Reused by live CG/CP recompute and the CP helper below.
+export interface ActiveGeometry {
+  bodyLength: number;
+  finLength: number;
+  finHeight: number;
+  engines: Engine[];
+}
+
+export function activeGeometry(rocket: Rocket, activeStage: 0 | 1 | 2): ActiveGeometry {
+  let bodyLength = rocket.body.length;
+  let finLength = rocket.fins.length;
+  let finHeight = rocket.fins.height;
+  for (let i = 0; i < activeStage; i++) {
+    const id = rocket.engineIds[i];
+    if (!id) continue;
+    const e = getEngine(id);
+    const droppedCm = e.length / 10;
+    bodyLength -= droppedCm;
+    if (finHeight > 0) {
+      finHeight = Math.max(0, finHeight - droppedCm);
+    } else {
+      finLength = Math.max(0, finLength - droppedCm);
+    }
+  }
+  const engines: Engine[] = [];
+  for (let i = activeStage; i < rocket.numStages; i++) {
+    const id = rocket.engineIds[i];
+    if (id) engines.push(getEngine(id));
+  }
+  return { bodyLength, finLength, finHeight, engines };
+}
