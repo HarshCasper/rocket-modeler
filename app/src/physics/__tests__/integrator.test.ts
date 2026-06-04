@@ -26,6 +26,24 @@ describe('flight integrator', () => {
     expect(['landed', 'crashed']).toContain(last.phase);
   });
 
+  it('a two stage rocket shows different stability margin before and after stage drop', () => {
+    const twoStage = {
+      ...DEFAULT_ROCKET,
+      numStages: 2 as const,
+      engineIds: ['B6-0', 'A8-3'] as [string, string],
+    };
+    const samples = runFullFlight(twoStage, DEFAULT_FLIGHT_CONFIG);
+    const earlyBoost = samples.find((s) => s.phase === 'boost' && s.activeStage === 0);
+    const afterDrop = samples.find((s) => s.phase === 'boost' && s.activeStage === 1);
+    if (!earlyBoost || !afterDrop) throw new Error('expected to find both stages');
+    // Margin is recomputed when the booster drops — values should differ
+    // meaningfully (more than rounding noise).
+    expect(Math.abs(earlyBoost.marginCal - afterDrop.marginCal)).toBeGreaterThan(0.1);
+    // Each sample should also expose a sensible cg and cp.
+    expect(earlyBoost.cg).toBeGreaterThan(0);
+    expect(earlyBoost.cp).toBeGreaterThan(0);
+  });
+
   it('positive wind drifts the rocket downwind by landing', () => {
     const calm = runFullFlight(DEFAULT_ROCKET, DEFAULT_FLIGHT_CONFIG);
     const windy = runFullFlight(DEFAULT_ROCKET, { ...DEFAULT_FLIGHT_CONFIG, windSpeed: 5 });
