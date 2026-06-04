@@ -340,29 +340,14 @@ function traceNoseConeShape(
   ctx.beginPath();
   switch (shape) {
     case 'ogive': {
-      const rho = (halfW * halfW + noseLen * noseLen) / (2 * halfW);
-      const centerXLeft = -halfW + rho;
-      const centerXRight = halfW - rho;
+      // Cubic Bezier approximation of a tangent ogive — vertical tangent at
+      // base, horizontal tangent at tip, mirrored about the rocket axis.
+      const K = 0.55;
+      const baseCtrlY = baseY - K * noseLen;
+      const tipCtrlOffset = K * halfW;
       ctx.moveTo(-halfW, baseY);
-      // left arc upward to tip, then right arc downward to right base.
-      ctx.arc(
-        centerXLeft,
-        baseY,
-        rho,
-        Math.PI,
-        Math.PI + Math.atan2(tipY - baseY, 0 - centerXLeft),
-        false,
-      );
-      ctx.lineTo(0, tipY);
-      ctx.arc(
-        centerXRight,
-        baseY,
-        rho,
-        Math.atan2(tipY - baseY, 0 - centerXRight),
-        0,
-        false,
-      );
-      ctx.lineTo(halfW, baseY);
+      ctx.bezierCurveTo(-halfW, baseCtrlY, -tipCtrlOffset, tipY, 0, tipY);
+      ctx.bezierCurveTo(tipCtrlOffset, tipY, halfW, baseCtrlY, halfW, baseY);
       break;
     }
     case 'parabolic': {
@@ -371,8 +356,10 @@ function traceNoseConeShape(
       break;
     }
     case 'elliptical': {
+      // Top half (counter-clockwise from left to right keeps the curve above
+      // the base line where the tip lives).
       ctx.moveTo(-halfW, baseY);
-      ctx.ellipse(0, baseY, halfW, noseLen, 0, Math.PI, 0, false);
+      ctx.ellipse(0, baseY, halfW, noseLen, 0, Math.PI, 0, true);
       break;
     }
     case 'cone':

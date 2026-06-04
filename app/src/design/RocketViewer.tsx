@@ -17,15 +17,26 @@ export function noseConePath(
   const halfWidth = (rightX - leftX) / 2 || 0.0001;
   switch (shape) {
     case 'ogive': {
-      const rho = (halfWidth * halfWidth + noseLen * noseLen) / (2 * halfWidth);
-      return `M ${leftX} ${baseY} A ${rho} ${rho} 0 0 1 ${centerX} ${tipY} A ${rho} ${rho} 0 0 1 ${rightX} ${baseY} Z`;
+      // Cubic Bezier approximation of a tangent ogive: vertical tangent at the
+      // base (control1 directly above), horizontal tangent at the tip (control2
+      // on the tip's horizontal line). Avoids degenerate SVG arc behaviour for
+      // tall, thin noses where the true ogive radius is enormous.
+      const K = 0.55;
+      const baseCtrlY = baseY - K * noseLen;
+      const tipCtrlOffset = K * halfWidth;
+      return (
+        `M ${leftX} ${baseY} ` +
+        `C ${leftX} ${baseCtrlY} ${centerX - tipCtrlOffset} ${tipY} ${centerX} ${tipY} ` +
+        `C ${centerX + tipCtrlOffset} ${tipY} ${rightX} ${baseCtrlY} ${rightX} ${baseY} Z`
+      );
     }
     case 'parabolic': {
       const ctrlY = baseY - 2 * noseLen;
       return `M ${leftX} ${baseY} Q ${centerX} ${ctrlY} ${rightX} ${baseY} Z`;
     }
     case 'elliptical':
-      return `M ${leftX} ${baseY} A ${halfWidth} ${noseLen} 0 0 1 ${rightX} ${baseY} Z`;
+      // sweep-flag = 0 traces the top half of the ellipse (toward the tip).
+      return `M ${leftX} ${baseY} A ${halfWidth} ${noseLen} 0 0 0 ${rightX} ${baseY} Z`;
     case 'cone':
     default:
       return `M ${leftX} ${baseY} L ${centerX} ${tipY} L ${rightX} ${baseY} Z`;
