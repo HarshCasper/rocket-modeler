@@ -44,6 +44,18 @@ describe('flight integrator', () => {
     expect(earlyBoost.cp).toBeGreaterThan(0);
   });
 
+  it('rocket clears the launch rod at a hobby-realistic speed', () => {
+    const samples = runFullFlight(DEFAULT_ROCKET, DEFAULT_FLIGHT_CONFIG);
+    const rodClear = samples.find((s) => !s.onRod && s.phase === 'boost');
+    expect(rodClear).toBeDefined();
+    if (rodClear) {
+      // 1/2A through C class hobby motors clear a 110 cm rod at roughly
+      // 8–40 m/s depending on mass and class.
+      expect(rodClear.speed).toBeGreaterThan(8);
+      expect(rodClear.speed).toBeLessThan(40);
+    }
+  });
+
   it('positive wind drifts the rocket downwind by landing', () => {
     const calm = runFullFlight(DEFAULT_ROCKET, DEFAULT_FLIGHT_CONFIG);
     const windy = runFullFlight(DEFAULT_ROCKET, { ...DEFAULT_FLIGHT_CONFIG, windSpeed: 5 });
