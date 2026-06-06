@@ -1,7 +1,8 @@
 import { useAppStore } from '../state/store';
-import { ENGINES, enginesForStage } from '../domain/engines';
+import { ENGINES, enginesForStage, getEngine } from '../domain/engines';
 import { SliderField } from '../ui/SliderField';
 import type { NoseConeShape } from '../domain/types';
+import { ThrustCurve } from './ThrustCurve';
 
 // Typical subsonic Cd by nose cone shape. User can still override; this just
 // suggests a sensible baseline for the chosen geometry.
@@ -28,8 +29,11 @@ export function EnginesPanel() {
         });
         const fallback = options.length ? options[0].id : ENGINES[0].id;
         const current = rocket.engineIds[idx] ?? fallback;
+        const selectedEngine = current && options.some((e) => e.id === current)
+          ? getEngine(current)
+          : null;
         return (
-          <div key={idx} className="space-y-1">
+          <div key={idx} className="space-y-1.5">
             <label className="text-xs font-medium text-ink/70">
               Stage {idx + 1} engine{isBooster ? ' (booster)' : ''}
             </label>
@@ -53,6 +57,7 @@ export function EnginesPanel() {
                 <option value="">no compatible engine (body too narrow)</option>
               )}
             </select>
+            {selectedEngine && <ThrustCurve engine={selectedEngine} />}
           </div>
         );
       })}
