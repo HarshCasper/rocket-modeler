@@ -17,22 +17,30 @@ const TRAIL_MAX = 300; // points
 export function FlightViewer({ rocket, sample, launchAngle, countdown, windSpeed }: FlightViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const trailRef = useRef<{ x: number; altitude: number }[]>([]);
+  const lastStageRef = useRef<number | null>(null);
+  const stageFlashRef = useRef<number>(0); // 0..1 fade
 
   useEffect(() => {
     const cnv = canvasRef.current;
     if (!cnv) return;
     const ctx = cnv.getContext('2d');
     if (!ctx) return;
-    // Maintain trajectory trail. Reset on idle or freshly created sim.
     if (!sample || sample.phase === 'pad') {
       trailRef.current = [];
+      lastStageRef.current = null;
+      stageFlashRef.current = 0;
     } else {
       trailRef.current.push({ x: sample.xDistance, altitude: sample.altitude });
       if (trailRef.current.length > TRAIL_MAX) {
         trailRef.current.splice(0, trailRef.current.length - TRAIL_MAX);
       }
+      if (lastStageRef.current !== null && lastStageRef.current !== sample.activeStage) {
+        stageFlashRef.current = 1;
+      }
+      lastStageRef.current = sample.activeStage;
+      stageFlashRef.current = Math.max(0, stageFlashRef.current - 0.04);
     }
-    draw(ctx, rocket, sample, launchAngle, countdown, windSpeed, trailRef.current);
+    draw(ctx, rocket, sample, launchAngle, countdown, windSpeed, trailRef.current, stageFlashRef.current);
   }, [rocket, sample, launchAngle, countdown, windSpeed]);
 
   return (
@@ -55,6 +63,7 @@ function draw(
   countdown: number,
   windSpeed: number,
   trail: { x: number; altitude: number }[],
+  stageFlash: number,
 ) {
   const W = ctx.canvas.width;
   const H = ctx.canvas.height;
@@ -134,6 +143,14 @@ function draw(
 
   // Wind direction indicator in the top right corner.
   drawWindIndicator(ctx, windSpeed);
+
+  // Stage drop flash — a brief, fading "STAGE N" caption above the rocket.
+  if (stageFlash > 0 && sample) {
+    ctx.fillStyle = `rgba(11,61,145,${stageFlash * 0.85})`;
+    ctx.font = 'bold 20px Inter, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`STAGE ${sample.activeStage + 1} IGNITED`, W / 2, 60);
+  }
 
   // Countdown overlay.
   if (countdown > 0) {
