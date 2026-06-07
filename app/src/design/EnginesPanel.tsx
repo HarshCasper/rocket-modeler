@@ -57,7 +57,17 @@ export function EnginesPanel() {
                 <option value="">no compatible engine (body too narrow)</option>
               )}
             </select>
-            {selectedEngine && <ThrustCurve engine={selectedEngine} />}
+            {selectedEngine && (
+              <>
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-ink/50 uppercase tracking-wider font-mono tabular-nums">
+                  <span>class {selectedEngine.classLetter}</span>
+                  <span>wet {selectedEngine.mass.toFixed(1)} g</span>
+                  <span>fuel {selectedEngine.fuelMass.toFixed(1)} g</span>
+                  <span>delay {selectedEngine.delayTime.toFixed(1)} s</span>
+                </div>
+                <ThrustCurve engine={selectedEngine} />
+              </>
+            )}
           </div>
         );
       })}
