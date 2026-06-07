@@ -1,17 +1,8 @@
 import { useAppStore } from '../state/store';
 import { ENGINES, enginesForStage, getEngine } from '../domain/engines';
 import { SliderField } from '../ui/SliderField';
-import type { NoseConeShape } from '../domain/types';
+import { NOSE_TYPICAL_CD } from '../physics/cp-barrowman';
 import { ThrustCurve } from './ThrustCurve';
-
-// Typical subsonic Cd by nose cone shape. User can still override; this just
-// suggests a sensible baseline for the chosen geometry.
-const TYPICAL_CD: Record<NoseConeShape, number> = {
-  cone: 0.5,
-  ogive: 0.4,
-  parabolic: 0.35,
-  elliptical: 0.3,
-};
 
 export function EnginesPanel() {
   const rocket = useAppStore((s) => s.rocket);
@@ -115,11 +106,11 @@ export function EnginesPanel() {
         type="button"
         onClick={() => {
           const shape = rocket.noseCone.shape ?? 'cone';
-          updateRocket((r) => ({ ...r, dragCoefficient: TYPICAL_CD[shape] }));
+          updateRocket((r) => ({ ...r, dragCoefficient: NOSE_TYPICAL_CD[shape] }));
         }}
         className="text-[11px] text-nasa/70 hover:text-nasa underline-offset-2 hover:underline"
       >
-        Suggest typical Cd for {rocket.noseCone.shape ?? 'cone'} ({TYPICAL_CD[rocket.noseCone.shape ?? 'cone'].toFixed(2)})
+        Suggest typical Cd for {rocket.noseCone.shape ?? 'cone'} ({NOSE_TYPICAL_CD[rocket.noseCone.shape ?? 'cone'].toFixed(2)})
       </button>
     </div>
   );

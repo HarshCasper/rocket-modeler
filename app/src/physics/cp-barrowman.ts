@@ -38,6 +38,15 @@ export function noseConeCpCoeff(shape: NoseConeShape | undefined): number {
   return NOSE_CP_COEFF[shape ?? 'cone'];
 }
 
+// Typical subsonic drag coefficient by nose cone shape — used by the UI to
+// suggest a sensible baseline Cd when the user picks a shape.
+export const NOSE_TYPICAL_CD: Record<NoseConeShape, number> = {
+  cone: 0.5,
+  ogive: 0.4,
+  parabolic: 0.35,
+  elliptical: 0.3,
+};
+
 export function computeCp(input: CpInputs): CpResult {
   const { bodyLength, bodyDiameter, noseLength, finLength, finWidth, finHeight, finCount } = input;
   const noseShape = input.noseShape ?? 'cone';
