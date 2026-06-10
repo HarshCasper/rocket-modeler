@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useAppStore } from './state/store';
 import { DesignMode } from './design/DesignMode';
 import { FlightMode } from './flight/FlightMode';
@@ -100,8 +101,19 @@ export default function App() {
           </button>
         </div>
       </header>
-      <main className="flex-1 min-h-0">
-        {mode === 'design' ? <DesignMode /> : <FlightMode />}
+      <main className="flex-1 min-h-0 relative">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={mode}
+            className="absolute inset-0"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18 }}
+          >
+            {mode === 'design' ? <DesignMode /> : <FlightMode />}
+          </motion.div>
+        </AnimatePresence>
       </main>
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
       <ToastHost />
