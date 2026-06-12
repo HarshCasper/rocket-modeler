@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import type { FlightSample } from '../domain/types';
 import { FlightChart } from './FlightChart';
 import { GRAVITY } from '../domain/constants';
@@ -39,8 +40,18 @@ export function PostFlightSummary({ samples, onClose, onShare }: PostFlightSumma
   const crashed = last.phase === 'crashed';
 
   return (
-    <div className="absolute inset-0 z-10 grid place-items-center bg-ink/30 p-4">
-      <div className="bg-white rounded-lg shadow-xl border border-nasa/20 w-full max-w-xl p-6 space-y-4">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.18 }}
+      className="absolute inset-0 z-10 grid place-items-center bg-ink/30 p-4"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 12, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.24, ease: 'easeOut' }}
+        className="bg-white rounded-lg shadow-xl border border-nasa/20 w-full max-w-xl p-6 space-y-4"
+      >
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-nasa">
             {crashed ? 'Flight failed' : 'Flight complete'}
@@ -92,8 +103,8 @@ export function PostFlightSummary({ samples, onClose, onShare }: PostFlightSumma
             Done
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
