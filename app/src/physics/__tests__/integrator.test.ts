@@ -44,6 +44,23 @@ describe('flight integrator', () => {
     expect(earlyBoost.cp).toBeGreaterThan(0);
   });
 
+  it('an unstable rocket lands without producing NaN values', () => {
+    // Move the body and payload so CG drops below CP — should mark unstable
+    // and tip over without breaking the integrator.
+    const tippy = {
+      ...DEFAULT_ROCKET,
+      fins: { ...DEFAULT_ROCKET.fins, length: 2.0, width: 1.0 },
+      recoveryPayloadMass: 0,
+    };
+    const samples = runFullFlight(tippy, DEFAULT_FLIGHT_CONFIG);
+    for (const s of samples) {
+      expect(Number.isFinite(s.altitude)).toBe(true);
+      expect(Number.isFinite(s.speed)).toBe(true);
+      expect(Number.isFinite(s.tiltDeg)).toBe(true);
+      expect(Number.isFinite(s.marginCal)).toBe(true);
+    }
+  });
+
   it('rocket clears the launch rod at a hobby-realistic speed', () => {
     const samples = runFullFlight(DEFAULT_ROCKET, DEFAULT_FLIGHT_CONFIG);
     const rodClear = samples.find((s) => !s.onRod && s.phase === 'boost');
