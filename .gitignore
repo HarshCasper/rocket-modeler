@@ -9,6 +9,7 @@ coverage/
 .playwright-mcp/
 *.tsbuildinfo
 *.png
+!docs/images/*.png
 vite.config.js
 vite.config.d.ts
 HANDOFF.md

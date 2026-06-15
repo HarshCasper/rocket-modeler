@@ -1,10 +1,41 @@
 # RocketModeler
 
-A TypeScript and React port of the NASA Glenn Research Center model
-rocket applet that Eric Bishop wrote in Java around 2002. The original
-needed the Java browser plugin, which no current browser still ships,
-so this is an independent rebuild as a static web app. Not affiliated
-with NASA. The original applet is public-domain US Government work.
+## Intro
+
+A model rocket sandbox in the browser. You design a paper-style rocket
+in one view, then put it on a launchpad in the other and watch it fly.
+Live at https://rocketmodeler.harshcasper.dev/.
+
+The design view exposes the rocket parameters that matter for stability
+and altitude: body length and diameter, nose cone length and shape, fin
+length, width, count and offset, stage count, engine choice per stage,
+materials and parachute size. As you change them, the centre of
+gravity, centre of pressure, total mass and stability caliber update in
+real time, with a coloured gauge telling you whether the design is
+overstable, stable, marginal or unstable.
+
+The launch view runs the rocket in a real flight simulation. The
+engine produces thrust through its published burn curve, mass drops as
+fuel burns, the parachute deploys at ejection, atmospheric density
+drops with altitude, the launch rod constrains motion for the first
+110 cm, and aerodynamic torque turns the nose into the relative wind so
+gravity turn and weathercocking emerge naturally. A HUD reports
+altitude, speed, g-force and live stability margin, and after landing
+a summary modal lists apogee, peak speed, peak g, time to apogee and
+total flight time with altitude, speed and acceleration charts.
+
+| Design view | Launch view |
+| --- | --- |
+| ![design](docs/images/rocketmodeler-design.png) | ![launch](docs/images/rocketmodeler-launch.png) |
+
+## Background
+
+It is a TypeScript and React port of the [NASA Glenn Research Center
+RocketModeler applet](https://www.grc.nasa.gov/www/k-12/VirtualAero/BottleRocket/airplane/rktsim.html)
+that Eric Bishop wrote in Java around 2002. The original needed the
+Java browser plugin, which no current browser still ships, so this is
+an independent rebuild as a static web app. Not affiliated with NASA.
+The original applet is public-domain US Government work.
 
 ## Run it
 
@@ -90,5 +121,5 @@ The integrator is semi-Euler at 100 sub-steps per visible frame
 ## Credit
 
 Eric Bishop wrote the original applet at Ohio State University working
-with NASA Glenn Research Center. This rebuild is by Harsh Mishra. MIT
-licensed; see `LICENSE`.
+with NASA Glenn Research Center. This rebuild is by [@HarshCasper](https://github.com/HarshCasper).
+MIT licensed; see `LICENSE`.
