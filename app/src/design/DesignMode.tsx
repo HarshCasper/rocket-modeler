@@ -71,9 +71,9 @@ export function DesignMode() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 p-4 h-full">
-      <section ref={viewerSectionRef} className="rounded-lg border border-nasa/15 bg-white shadow-sm flex flex-col min-h-[400px]">
-        <div className="flex items-center gap-2 border-b border-nasa/10 px-4 py-2 text-xs flex-wrap">
-          <span className="text-ink/40 uppercase tracking-wider">Presets</span>
+      <section ref={viewerSectionRef} className="rounded-lg border border-nasa/15 bg-white shadow-sm flex flex-col min-h-[400px] dark:bg-ink dark:border-white/10">
+        <div className="flex items-center gap-2 border-b border-nasa/10 dark:border-white/10 px-4 py-2 text-xs flex-wrap">
+          <span className="text-ink/40 dark:text-paper/40 uppercase tracking-wider">Presets</span>
           {PRESETS.map((p) => (
             <button
               key={p.id}
@@ -82,7 +82,7 @@ export function DesignMode() {
                 setRocket(p.rocket);
                 pushToast(`Loaded ${p.name}`, 'info');
               }}
-              className="px-2.5 py-0.5 rounded-full border border-nasa/15 bg-paper text-nasa hover:bg-nasa/10 transition-colors"
+              className="px-2.5 py-0.5 rounded-full border border-nasa/15 dark:border-white/15 bg-paper dark:bg-ink/40 text-nasa dark:text-rocket-tube hover:bg-nasa/10 dark:hover:bg-rocket-tube/15 transition-colors"
               title={p.blurb}
             >
               {p.name}
@@ -91,21 +91,21 @@ export function DesignMode() {
           <button
             type="button"
             onClick={handleExport}
-            className="ml-auto px-2.5 py-0.5 rounded-full border border-nasa/15 text-ink/60 hover:text-nasa hover:bg-nasa/5 transition-colors"
+            className="ml-auto px-2.5 py-0.5 rounded-full border border-nasa/15 dark:border-white/15 text-ink/60 dark:text-paper/60 hover:text-nasa dark:hover:text-rocket-tube hover:bg-nasa/5 dark:hover:bg-rocket-tube/15 transition-colors"
             title="Save the current rocket diagram as a PNG"
           >
             ↓ PNG
           </button>
         </div>
-        <div className="flex-1 grid place-items-center bg-blueprint bg-grid overflow-hidden">
+        <div className="flex-1 grid place-items-center bg-blueprint bg-grid overflow-hidden dark:bg-none dark:bg-ink/60">
           <RocketViewer />
         </div>
-        <div className="border-t border-nasa/15 px-4 py-3">
+        <div className="border-t border-nasa/15 dark:border-white/10 px-4 py-3">
           <MetricsReadout />
         </div>
       </section>
-      <aside className="rounded-lg border border-nasa/15 bg-white shadow-sm p-4 space-y-3 overflow-y-auto">
-        <div className="inline-flex rounded-full border border-nasa/15 p-0.5 bg-paper">
+      <aside className="rounded-lg border border-nasa/15 bg-white shadow-sm p-4 space-y-3 overflow-y-auto dark:bg-ink/80 dark:border-white/10 dark:text-paper">
+        <div className="inline-flex rounded-full border border-nasa/15 dark:border-white/15 p-0.5 bg-paper dark:bg-ink/40">
           {(['geometry', 'engines', 'materials'] as const).map((t) => (
             <button
               key={t}
@@ -115,7 +115,7 @@ export function DesignMode() {
                 'px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ' +
                 (tab === t
                   ? 'bg-nasa text-white'
-                  : 'text-nasa hover:bg-nasa/10')
+                  : 'text-nasa dark:text-rocket-tube hover:bg-nasa/10 dark:hover:bg-rocket-tube/15')
               }
             >
               {t}

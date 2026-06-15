@@ -41,7 +41,7 @@ export function SliderField({
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-baseline">
-        <label htmlFor={id} className="text-xs font-medium text-ink/70">
+        <label htmlFor={id} className="text-xs font-medium text-ink/70 dark:text-paper/70">
           {label}
         </label>
         <div className="flex items-baseline gap-1">
@@ -54,9 +54,9 @@ export function SliderField({
               if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur();
             }}
             disabled={disabled}
-            className="w-16 text-right font-mono text-sm tabular-nums bg-paper border border-nasa/15 rounded px-1.5 py-0.5 focus:outline-none focus:border-nasa disabled:opacity-50"
+            className="w-16 text-right font-mono text-sm tabular-nums bg-paper dark:bg-ink/40 dark:text-paper border border-nasa/15 dark:border-white/15 rounded px-1.5 py-0.5 focus:outline-none focus:border-nasa dark:focus:border-rocket-tube disabled:opacity-50"
           />
-          {unit && <span className="text-xs text-ink/50">{unit}</span>}
+          {unit && <span className="text-xs text-ink/50 dark:text-paper/50">{unit}</span>}
         </div>
       </div>
       <input

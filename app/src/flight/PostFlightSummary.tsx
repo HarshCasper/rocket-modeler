@@ -9,6 +9,7 @@ interface PostFlightSummaryProps {
   samples: FlightSample[];
   onClose: () => void;
   onShare?: () => void;
+  onReplay?: () => void;
 }
 
 async function defaultShare() {
@@ -17,7 +18,12 @@ async function defaultShare() {
   else pushToast('Could not access clipboard', 'error');
 }
 
-export function PostFlightSummary({ samples, onClose, onShare }: PostFlightSummaryProps) {
+export function PostFlightSummary({
+  samples,
+  onClose,
+  onShare,
+  onReplay,
+}: PostFlightSummaryProps) {
   if (samples.length === 0) return null;
 
   const last = samples[samples.length - 1];
@@ -50,16 +56,16 @@ export function PostFlightSummary({ samples, onClose, onShare }: PostFlightSumma
         initial={{ opacity: 0, y: 12, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.24, ease: 'easeOut' }}
-        className="bg-white rounded-lg shadow-xl border border-nasa/20 w-full max-w-xl p-6 space-y-4"
+        className="bg-white dark:bg-ink rounded-lg shadow-xl border border-nasa/20 dark:border-white/10 w-full max-w-xl p-6 space-y-4 text-ink dark:text-paper"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-nasa">
+          <h2 className="text-lg font-semibold text-nasa dark:text-rocket-tube">
             {crashed ? 'Flight failed' : 'Flight complete'}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-ink/40 hover:text-ink text-xl leading-none"
+            className="text-ink/40 dark:text-paper/50 hover:text-ink dark:hover:text-paper text-xl leading-none"
             aria-label="Close"
           >
             ×
@@ -87,11 +93,20 @@ export function PostFlightSummary({ samples, onClose, onShare }: PostFlightSumma
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 pt-2 flex-wrap">
+          {onReplay && (
+            <button
+              type="button"
+              onClick={onReplay}
+              className="px-4 py-1.5 rounded text-sm font-medium border border-nasa/30 dark:border-rocket-tube/40 text-nasa dark:text-rocket-tube hover:bg-nasa/10 dark:hover:bg-rocket-tube/15"
+            >
+              ↺ Replay in slow motion
+            </button>
+          )}
           <button
             type="button"
             onClick={onShare ?? defaultShare}
-            className="px-4 py-1.5 rounded text-sm font-medium border border-nasa/30 text-nasa hover:bg-nasa/10"
+            className="px-4 py-1.5 rounded text-sm font-medium border border-nasa/30 dark:border-rocket-tube/40 text-nasa dark:text-rocket-tube hover:bg-nasa/10 dark:hover:bg-rocket-tube/15"
           >
             Copy share link
           </button>
@@ -121,13 +136,15 @@ function Stat({
     <div
       className={
         'rounded border px-2.5 py-1.5 min-w-0 ' +
-        (highlight ? 'bg-nasa text-white border-nasa' : 'bg-paper border-nasa/15 text-ink')
+        (highlight
+          ? 'bg-nasa text-white border-nasa'
+          : 'bg-paper dark:bg-ink/40 border-nasa/15 dark:border-white/10 text-ink dark:text-paper')
       }
     >
       <div
         className={
           'text-[10px] uppercase tracking-wider whitespace-nowrap ' +
-          (highlight ? 'text-white/70' : 'text-ink/40')
+          (highlight ? 'text-white/70' : 'text-ink/40 dark:text-paper/50')
         }
       >
         {label}
