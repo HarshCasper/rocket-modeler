@@ -15,7 +15,7 @@ interface ReplayState {
   startedAtSimTime: number;
 }
 
-const REPLAY_SPEED = 0.25; // 1 second real time renders 0.25 s of flight
+const REPLAY_SPEED = 1.0; // 1 second of real time renders 1 second of flight
 
 export function FlightMode() {
   const rocket = useAppStore((s) => s.rocket);
@@ -198,6 +198,19 @@ interface ReplayBarProps {
 function ReplayBar({ index, samples, playing, onTogglePlay, onSeek, onExit }: ReplayBarProps) {
   const current = samples[index];
   const total = samples[samples.length - 1]?.t ?? 0;
+  // Slider is keyed off time so dragging is intuitive even when descent
+  // samples vastly outnumber boost samples.
+  const currentT = current?.t ?? 0;
+  function seekToTime(t: number) {
+    let lo = 0;
+    let hi = samples.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (samples[mid].t < t) lo = mid + 1;
+      else hi = mid;
+    }
+    onSeek(lo);
+  }
   return (
     <div className="absolute left-4 right-4 bottom-4 bg-white/95 dark:bg-ink/90 border border-nasa/20 dark:border-white/15 rounded-lg shadow-md px-3 py-2 flex items-center gap-3 text-xs text-ink dark:text-paper">
       <button
@@ -209,15 +222,15 @@ function ReplayBar({ index, samples, playing, onTogglePlay, onSeek, onExit }: Re
         {playing ? '❚❚' : '▶'}
       </button>
       <span className="font-mono tabular-nums w-12 text-right">
-        {current?.t.toFixed(1)}s
+        {currentT.toFixed(1)}s
       </span>
       <input
         type="range"
         min={0}
-        max={samples.length - 1}
-        step={1}
-        value={index}
-        onChange={(e) => onSeek(parseInt(e.target.value, 10))}
+        max={total}
+        step={0.05}
+        value={currentT}
+        onChange={(e) => seekToTime(parseFloat(e.target.value))}
         className="flex-1 accent-nasa"
         aria-label="Replay scrub bar"
       />

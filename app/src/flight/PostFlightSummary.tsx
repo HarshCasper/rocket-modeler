@@ -100,7 +100,7 @@ export function PostFlightSummary({
               onClick={onReplay}
               className="px-4 py-1.5 rounded text-sm font-medium border border-nasa/30 dark:border-rocket-tube/40 text-nasa dark:text-rocket-tube hover:bg-nasa/10 dark:hover:bg-rocket-tube/15"
             >
-              ↺ Replay in slow motion
+              ↺ Replay
             </button>
           )}
           <button
